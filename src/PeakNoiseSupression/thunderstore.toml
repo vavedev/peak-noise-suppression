@@ -1,14 +1,14 @@
 [config]
-schemaVersion = "0.0.1"
+schemaVersion = "1.0.0"
 
 [general]
-repository = "https://thunderstore.io"
+repository = ""
 
 [package]
 namespace = "vavedev"
-name = "PeakNoiseSupression"
-description = "TODO: Fill in short mod description."
-websiteUrl = "" # TODO: Add a link to your mod repository here (optional)
+name = "Peak Noise Supression"
+description = "Customizable noise suppression for Peak."
+websiteUrl = ""
 containsNsfwContent = false
 
 [package.dependencies]
@@ -36,9 +36,9 @@ target = "/"
 [publish]
 # See communities at:
 # https://thunderstore.io/api/experimental/community/
-communities = [ "peak", ]
+communities = [ "peak"]
 
 [publish.categories]
 # See categories at:
 # https://thunderstore.io/api/experimental/community/peak/category/
-peak = [ "mods", ]
+peak = [ "audio", "client", "qol", "optimization", "tools"]

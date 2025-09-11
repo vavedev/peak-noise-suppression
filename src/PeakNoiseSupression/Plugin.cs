@@ -3,33 +3,51 @@ using BepInEx.Logging;
 
 namespace PeakNoiseSupression;
 
-// Here are some basic resources on code style and naming conventions to help
-// you in your first CSharp plugin!
-// https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions
-// https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names
-// https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/names-of-namespaces
-
-// This BepInAutoPlugin attribute comes from the Hamunii.BepInEx.AutoPlugin
-// NuGet package, and it will generate the BepInPlugin attribute for you!
-// For more info, see https://github.com/Hamunii/BepInEx.AutoPlugin
 [BepInAutoPlugin]
 public partial class Plugin : BaseUnityPlugin
 {
+    public const string PLUGIN_GUID = "vavedev.PeakNoiseSuppression";
+
+    public const string PLUGIN_NAME = "Peak Noise Suppression";
+
+    public const string PLUGIN_VERSION = "1.0.0";
+
     internal static ManualLogSource Log { get; private set; } = null!;
+
+    internal static Harmony? Harmony { get; set; }
 
     private void Awake()
     {
-        // BepInEx gives us a logger which we can use to log information.
-        // See https://lethal.wiki/dev/fundamentals/logging
         Log = Logger;
+        Log.LogInfo($"Plugin {PLUGIN_NAME} is loaded!");
+        Patch();
+    }
 
-        // BepInEx also gives us a config file for easy configuration.
-        // See https://lethal.wiki/dev/intermediate/custom-configs
+    private void Patch()
+    {
+        Harmony = new Harmony("vavedev.PeakNoiseSuppression");
+        Harmony.PatchAll(typeof(RecorderPatch));
+    }
+}
 
-        // We can apply our hooks here.
-        // See https://lethal.wiki/dev/fundamentals/patching-code
-
-        // Log our awake here so we can see it in LogOutput.log file
-        Log.LogInfo($"Plugin {Name} is loaded!");
+[HarmonyPatch(typeof(Recorder), "RestartRecording")]
+public static class RecorderPatch
+{
+    [HarmonyPrefix]
+    public static void Prefix(Recorder __instance)
+    {
+        if (!((Object)(object)__instance == (Object)null))
+        {
+            WebRtcAudioDsp val = ((Component)__instance).GetComponent<WebRtcAudioDsp>();
+            if ((Object)(object)val == (Object)null)
+            {
+                val = ((Component)__instance).gameObject.AddComponent<WebRtcAudioDsp>();
+                Debug.Log((object)"[VoiceNoiseSuppressionMod] Added WebRtcAudioDsp component.");
+            }
+            val.AGC = true;
+            val.NoiseSuppression = true;
+            val.AEC = true;
+            Debug.Log((object)"[VoiceNoiseSuppressionMod] Enabled Noise Suppression, Echo Cancellation, and AGC.");
+        }
     }
 }

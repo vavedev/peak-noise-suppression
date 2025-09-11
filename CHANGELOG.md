@@ -1,3 +1,7 @@
 # Changelog
 
-TODO: You can follow this format for your changelog: <https://keepachangelog.com/en/1.1.0/>
+## [1.0.0] - 2025-09-11
+
+### Added
+
+- Configurable noise suppression
