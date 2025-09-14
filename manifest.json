@@ -1,0 +1,9 @@
+{
+  "name": "Peak Noise Suppression",
+  "version_number": "1.0.0",
+  "website_url": "",
+  "description": "Customizable noise suppression for Peak.",
+  "dependencies": [
+    "BepInEx-BepInExPack_PEAK-5.4.2403"
+  ]
+}
