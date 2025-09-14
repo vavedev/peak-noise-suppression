@@ -3,7 +3,6 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using System.Reflection;
-using UnityEngine;
 
 namespace PeakNoiseSuppression
 {
@@ -12,14 +11,12 @@ namespace PeakNoiseSuppression
     {
         public const string PLUGIN_GUID = "vavedev.PeakNoiseSuppression";
         public const string PLUGIN_NAME = "Peak Noise Suppression";
-        public const string PLUGIN_VERSION = "2.1.1";
+        public const string PLUGIN_VERSION = "2.2.0";
 
         internal static Plugin Instance { get; private set; } = null!;
         internal static ManualLogSource Log { get; private set; } = null!;
-
         private Harmony? harmony;
 
-        // --- Config entries (initialized in Awake) ---
         internal static ConfigEntry<bool> EnablePlugin = null!;
         internal static ConfigEntry<bool> AddIfMissing = null!;
 
@@ -52,46 +49,37 @@ namespace PeakNoiseSuppression
             Instance = this;
             Log = Logger;
 
-            // General
-            EnablePlugin = Config.Bind("General", "Enabled", true, "Master enable/disable for this plugin.");
-            AddIfMissing = Config.Bind("General", "AddWebRtcIfMissing", true, "If true, add WebRtcAudioDsp when missing.");
+            EnablePlugin = Config.Bind("General", "Enabled", true, "Master enable/disable.");
+            AddIfMissing = Config.Bind("General", "AddWebRtcIfMissing", true);
 
-            // Photon DSP toggles
-            EnableAGC = Config.Bind("DSP", "AGC", true, "Enable Automatic Gain Control (AGC).");
-            EnableAEC = Config.Bind("DSP", "AEC", true, "Enable Acoustic Echo Cancellation (AEC).");
-            EnableNoiseSuppression = Config.Bind("DSP", "NoiseSuppression", true, "Enable Photon/WebRTC Noise Suppression if supported.");
-            NoiseSuppressionLevel = Config.Bind("DSP", "NoiseSuppressionLevel", 2, "Noise suppression aggressiveness: 0=Low,1=Moderate,2=High,3=VeryHigh.");
+            EnableAGC = Config.Bind("DSP", "AGC", true);
+            EnableAEC = Config.Bind("DSP", "AEC", true);
+            EnableNoiseSuppression = Config.Bind("DSP", "NoiseSuppression", true);
+            NoiseSuppressionLevel = Config.Bind("DSP", "NoiseSuppressionLevel", 2);
 
-            // Voice detection
-            EnableVoiceDetection = Config.Bind("VoiceDetection", "Enabled", true, "Enable Recorder.VoiceDetection.");
-            VoiceDetectionThreshold = Config.Bind("VoiceDetection", "Threshold", 0.05f, "Recorder.VoiceDetectionThreshold (0 disables).");
+            EnableVoiceDetection = Config.Bind("VoiceDetection", "Enabled", true);
+            VoiceDetectionThreshold = Config.Bind("VoiceDetection", "Threshold", 0.05f);
 
-            // Spectral gate + HP
-            EnableSpectralGate = Config.Bind("SpectralGate", "Enabled", true, "Enable managed spectral gate/noise suppression.");
-            SpectralGateFFTSize = Config.Bind("SpectralGate", "FFTSize", 512, "FFT window size (power of 2).");
-            SpectralGateMagnitudeThreshold = Config.Bind("SpectralGate", "MagnitudeThreshold", 0.08f, "Relative magnitude threshold (0–1).");
-            SpectralGateSuppressionFactor = Config.Bind("SpectralGate", "SuppressionFactor", 0.05f, "Attenuation for bins below threshold (0=mute,1=no suppression).");
-            EnableHighPass = Config.Bind("SpectralGate", "EnableHighPass", true, "Apply high-pass filter before gating.");
-            HighPassCutoffHz = Config.Bind("SpectralGate", "HighPassCutoffHz", 120f, "High-pass cutoff frequency (Hz).");
+            EnableSpectralGate = Config.Bind("SpectralGate", "Enabled", true);
+            SpectralGateFFTSize = Config.Bind("SpectralGate", "FFTSize", 512);
+            SpectralGateMagnitudeThreshold = Config.Bind("SpectralGate", "MagnitudeThreshold", 0.08f);
+            SpectralGateSuppressionFactor = Config.Bind("SpectralGate", "SuppressionFactor", 0.05f);
+            EnableHighPass = Config.Bind("SpectralGate", "EnableHighPass", true);
+            HighPassCutoffHz = Config.Bind("SpectralGate", "HighPassCutoffHz", 120f);
 
-            // Transmit gating
-            EnableTransmitGate = Config.Bind("TransmitGate", "Enabled", true, "Enable gating of Recorder.TransmitEnabled based on post-processed RMS.");
-            TransmitEnableThreshold = Config.Bind("TransmitGate", "EnableRms", 0.02f, "RMS level to enable transmit.");
-            TransmitDisableThreshold = Config.Bind("TransmitGate", "DisableRms", 0.012f, "RMS level to disable transmit (hysteresis).");
-            TransmitEnvelopeAlpha = Config.Bind("TransmitGate", "EnvelopeAlpha", 0.2f, "Envelope smoothing alpha (0-1).");
+            EnableTransmitGate = Config.Bind("TransmitGate", "Enabled", true);
+            TransmitEnableThreshold = Config.Bind("TransmitGate", "EnableRms", 0.02f);
+            TransmitDisableThreshold = Config.Bind("TransmitGate", "DisableRms", 0.012f);
+            TransmitEnvelopeAlpha = Config.Bind("TransmitGate", "EnvelopeAlpha", 0.2f);
 
-            // Debug/UI
-            EnableDebugLogger = Config.Bind("Debug", "EnableLogger", false, "Enable mic debug logger.");
-            ShowOverlay = Config.Bind("Debug", "ShowOverlay", true, "Show on-screen debug overlay.");
-            ShowGuiPanel = Config.Bind("Debug", "ShowGuiPanel", true, "Show UI tuning panel.");
+            EnableDebugLogger = Config.Bind("Debug", "EnableLogger", false);
+            ShowOverlay = Config.Bind("Debug", "ShowOverlay", true);
+            ShowGuiPanel = Config.Bind("Debug", "ShowGuiPanel", true);
 
-            // Start Harmony patches
             harmony = new Harmony(PLUGIN_GUID);
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
-            // Start ConfigReloader on plugin GameObject
             gameObject.AddComponent<ConfigReloader>();
-
             Log.LogInfo($"{PLUGIN_NAME} v{PLUGIN_VERSION} loaded.");
         }
 
